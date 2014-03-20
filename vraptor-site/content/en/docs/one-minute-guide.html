@@ -1,3 +1,93 @@
 ---
 title: One minute guide
 ---
+
+# A simple controller
+
+We will call `Controller` classes containing the business logic of your system. Some frameworks may refer these classes as actions or services, although they do not mean exactly the same thing.
+
+Having VRaptor dependency properly added and configured on your project, you can create your controllers for dealing with web requests and start building your system. 
+
+A simple controller would be:
+
+~~~
+#!java
+/*
+* You should annotate your controller with @Controller, so all of its public methods will
+* be ready to deal with web requests
+*/
+@Controller
+public class ClientsController {
+
+    /*
+     * You may get your class dependencies injected adding the CDI @Inject annotation. 
+     * It can be done directly on field or by constructor. For the second works you'll
+     * need to also add a default constructor required by CDI implementations.
+     */
+    @Inject
+    private ClientDao dao;
+
+    /*
+     * All public methods from your controller will be reachable through web.
+     * For example, form method can be accessed by URI /clients/form,
+     * and will render the view /WEB-INF/jsp/clients/form.jsp
+     */
+    public void form() {
+        // code that loads data for checkboxes, selects, etc
+    }
+
+    /*
+     * You can receive parameters on your method, and VRaptor will set your parameters
+     * fields with request parameters. If the request have:
+     * custom.name=Lucas
+     * custom.address=Vergueiro Street
+     * VRaptor will set the fields name and address of Client custom with values
+     * "Lucas" and "Vergueiro Street", using the fields setters.
+     * URI: /clients/add
+     * view: /WEB-INF/jsp/clients/add.jsp
+     */
+    public void add(Client custom) {
+        dao.save(custom);
+    }
+
+    /*
+     * VRaptor will export your method return value to the view. In this case,
+     * since your method return type is List<Clients>, then you can access the
+     * returned value on your jsp with the variable ${clientList}
+     * URI: /clients/list
+     * view: /WEB-INF/jsp/clients/list.jsp
+     */
+    public List<Client> list() {
+        return dao.listAll():
+    }
+
+    /*
+     * If the return type is a simple type, the name of exported variable will be
+     * the class name with the first letter in lower case. Since this method return
+     * type is Client, the variable will be ${client}.
+     * A request parameter would be something like id=5, and then VRaptor is able
+     * to get this value, convert it to Long, and pass it as parameter to your method.
+     * URI: /clients/view
+     * view: /WEB-INF/jsp/clients/view.jsp
+     */
+    public Client view(Long id) {
+        return dao.load(id);
+    }
+}
+~~~
+
+Note this class is independent of javax.servlet API. The code is also very simple and can be unit tested easily. VRaptor will make associations with these URIs by default:
+
+~~~
+/client/form   		invokes form()
+/client/add    		invokes add(client) populating the client with request parameters
+/clients/list  		invokes list() and returns ${clientList} to JSP
+/clients/view?id=3  invokes view(3l) and returns ${client} to JSP
+~~~
+
+
+We'll see later how easy it is to change the URI `/clients/view?id=3` to the more elegant `/clients/view/3`. `ClientDao` will also be injected by VRaptor, as we'll see. You can see now the [Ten minutes guide](/en/ten-minute-guide).
+
+##Questions
+
+You may get your questions answered on [GUJ forum](http://www.guj.com.br/tag/vraptor) or visiting our [mail list](https://groups.google.com/forum/#!forum/caelum-vraptor).
